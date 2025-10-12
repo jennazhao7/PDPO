@@ -1,10 +1,10 @@
-import math, torch
+import math, torch, gc
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 MODEL_ID = "OpenAssistant/reward-model-deberta-v3-large-v2"   # frozen RM
 MAX_LEN  = 512
-BATCH    = 128   # H100 can usually handle 128 for 512 tokens
+BATCH    = 32   # Reduced batch size for Quadro RTX 5000
 DEVICE   = "cuda" if torch.cuda.is_available() else "cpu"
 DTYPE    = torch.bfloat16 if DEVICE == "cuda" else torch.float32  # H100 loves bfloat16
 
@@ -31,7 +31,11 @@ def score_batch(prompts, responses):
     enc = {k: v.to(DEVICE) for k,v in enc.items()}
     with torch.autocast(device_type="cuda", dtype=DTYPE, enabled=(DEVICE=="cuda")):
         logits = rm(**enc).logits.squeeze(-1)  # [B]
-    return logits.float().cpu().tolist()
+    result = logits.float().cpu().tolist()
+    # Clear GPU memory
+    del enc, logits
+    torch.cuda.empty_cache()
+    return result
 
 def add_margins(batch):
     rp = score_batch(batch["prompt"], batch["pos"])
@@ -39,6 +43,10 @@ def add_margins(batch):
     m  = [pp - nn for pp,nn in zip(rp, rn)]
     return {"margin_raw": m, "margin_abs": [abs(x) for x in m]}
 
+print(f"Starting scoring with batch size {BATCH}")
+print(f"GPU memory before processing: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
+
 ds_scored = ds.map(add_margins, batched=True, batch_size=BATCH)
 ds_scored.save_to_disk("./props_with_margins_truthy")
 print("Done. Saved to ./props_with_margins_truthy")
+print(f"GPU memory after processing: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
