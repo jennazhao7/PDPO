@@ -1,0 +1,125 @@
+#!/bin/bash
+#$ -N pdpo_adaptive               # Job name (shows in qstat)
+#$ -q gpu                         # Use CRC's GPU queue
+#$ -l gpu_card=4                  # Request 4 GPUs (will adapt if fewer allocated)
+#$ -pe smp 16                     # Number of CPU cores (optimized for multi-GPU)
+#$ -l h_rt=72:00:00               # Walltime: 72 hours max
+#$ -cwd                           # Run job from current directory (~/PDPO)
+#$ -o logs/$JOB_NAME.$JOB_ID.out  # Stdout log file
+#$ -e logs/$JOB_NAME.$JOB_ID.err  # Stderr log file
+#$ -m abe                         # Email on abort/begin/end (optional)
+#$ -M jzhao7@nd.edu               # Your ND email (optional)
+
+# =============================================================================
+# ADAPTIVE DPO TRAINING SCRIPT
+# =============================================================================
+# This script automatically adapts to the number of GPUs allocated by CRC:
+# - 4 GPUs: Uses distributed training with torchrun
+# - 1 GPU:  Uses single-GPU training with optimized settings
+# - 0 GPUs: Falls back to CPU (very slow, not recommended)
+# =============================================================================
+
+# ---------- Environment Setup ----------
+source ~/.bashrc
+conda activate pdpo
+
+# Fix IPv6 socket issues for torchrun
+export NCCL_SOCKET_IFNAME=^docker0,lo
+export NCCL_IB_DISABLE=1
+
+# Print job info
+echo "=============================================================================="
+echo "🚀 ADAPTIVE DPO TRAINING STARTING"
+echo "=============================================================================="
+echo "Start time: $(date)"
+echo "Job ID: $JOB_ID"
+echo "Host: $(hostname)"
+nvidia-smi  # logs which GPU the job got
+
+# ---------- GPU Detection & Analysis ----------
+echo ""
+echo "🔍 DETECTING GPU ALLOCATION..."
+echo "SGE_GPU variable: '$SGE_GPU'"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+NGPUS=$(echo $SGE_GPU | tr ',' '\n' | wc -l)
+echo "Number of GPUs allocated: $NGPUS"
+echo "GPU IDs: $SGE_GPU"
+
+# Analyze GPU allocation
+echo ""
+echo "📊 GPU ALLOCATION ANALYSIS:"
+if [ "$NGPUS" -eq 4 ]; then
+    echo "✅ PERFECT: All 4 requested GPUs allocated!"
+    echo "   → Will use distributed training with torchrun"
+elif [ "$NGPUS" -eq 1 ]; then
+    echo "⚠️  PARTIAL: Only 1 GPU allocated (requested 4)"
+    echo "   → Will use single-GPU training with optimized settings"
+    echo "   → This might be due to resource availability or queue limits"
+elif [ "$NGPUS" -eq 0 ]; then
+    echo "❌ NONE: No GPUs allocated!"
+    echo "   → Will fall back to CPU training (very slow)"
+    echo "   → Check your SGE job configuration"
+else
+    echo "🔄 CUSTOM: $NGPUS GPUs allocated"
+    echo "   → Will adapt configuration for $NGPUS GPUs"
+fi
+
+# ---------- ADAPTIVE TRAINING EXECUTION ----------
+echo ""
+echo "🚀 STARTING ADAPTIVE DPO TRAINING..."
+echo "=============================================================================="
+
+if [ "$NGPUS" -gt 1 ]; then
+    echo "✅ MULTI-GPU MODE: Distributed Training"
+    echo "   Configuration:"
+    echo "   - GPUs: $NGPUS"
+    echo "   - Method: torchrun --nproc_per_node=$NGPUS"
+    echo "   - Batch size per GPU: 1"
+    echo "   - Gradient accumulation: 4"
+    echo "   - Effective batch size: $((NGPUS * 4))"
+    echo "   - Sequence length: 128/128"
+    echo ""
+    echo "🔥 Launching distributed training..."
+    torchrun --nproc_per_node=$NGPUS train_dpo_stage1.py
+    
+elif [ "$NGPUS" -eq 1 ]; then
+    echo "✅ SINGLE-GPU MODE: Optimized Training"
+    echo "   Configuration:"
+    echo "   - GPUs: 1"
+    echo "   - Method: python (single process)"
+    echo "   - Batch size: 2"
+    echo "   - Gradient accumulation: 8"
+    echo "   - Effective batch size: 16"
+    echo "   - Sequence length: 96/96 (memory optimized)"
+    echo ""
+    echo "🔥 Launching single-GPU training..."
+    python train_dpo_stage1.py
+    
+else
+    echo "❌ CPU FALLBACK MODE: Not Recommended"
+    echo "   Configuration:"
+    echo "   - GPUs: 0 (CPU only)"
+    echo "   - Method: python (CPU training)"
+    echo "   - Warning: This will be extremely slow!"
+    echo ""
+    echo "⚠️  Consider checking your SGE job configuration"
+    echo "🔥 Launching CPU training (very slow)..."
+    python train_dpo_stage1.py
+fi
+
+# ---------- Job Completion ----------
+echo ""
+echo "=============================================================================="
+echo "🏁 ADAPTIVE DPO TRAINING COMPLETED"
+echo "=============================================================================="
+echo "End time: $(date)"
+echo "Job ID: $JOB_ID"
+echo "Host: $(hostname)"
+echo ""
+echo "📊 Final Summary:"
+echo "   - GPUs used: $NGPUS"
+echo "   - Training mode: $([ "$NGPUS" -gt 1 ] && echo "Distributed" || echo "Single GPU")"
+echo "   - Status: $(if [ $? -eq 0 ]; then echo "✅ SUCCESS"; else echo "❌ FAILED"; fi)"
+echo "=============================================================================="
+
