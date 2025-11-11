@@ -1,0 +1,36 @@
+#!/bin/bash
+#$ -N pdpo_stage1_train_small         # Job name
+#$ -q gpu@@jung_gpu                   # GPU queue
+#$ -pe smp 4                          # 4 CPU cores (enough for data loading)
+#$ -l gpu_card=1                      # Request 1 GPU
+#$ -l gpu_mem=16G                     # GPU memory
+#$ -l h_vmem=32G                      # Host (CPU) memory
+#$ -l mem_free=32G
+#$ -l h_rt=03:00:00                   # Wall time (3 hours)
+#$ -cwd                               # Run job in current directory
+#$ -m abe                             # Email alerts (abort, begin, end)
+#$ -M jzhao7@nd.edu
+#$ -V                                 # Export environment variables
+
+# === Setup environment ===
+module load conda
+conda activate pdpo
+cd /users/jzhao7/PDPO
+
+# === (Optional) Sync repo before training ===
+git fetch origin main
+git reset --hard origin/main
+
+# === Run fine-tuning ===
+python train_dpo_stage1.py \
+  --model gpt2 \
+  --data ./dpo_train_ready.jsonl \
+  --out ./models/M1_small \
+  --epochs 3 \
+  --bsz 2 \
+  --ga 4 \
+  --max-prompt 64 \
+  --max-target 64 \
+  --max-len 128 \
+  > logs/train_dpo_stage1_small_$(date +%Y%m%d_%H%M).log 2>&1
+

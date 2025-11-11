@@ -136,24 +136,25 @@ def main():
 
     targs = TrainingArguments(
         output_dir=args.out,
-        per_device_train_batch_size=per_device_bsz,
-        gradient_accumulation_steps=ga,
-        num_train_epochs=epochs,
-        learning_rate=5e-5,
+        per_device_train_batch_size=args.bsz,          # e.g., 2
+        gradient_accumulation_steps=args.ga,           # e.g., 4
+        num_train_epochs=args.epochs,                  # e.g., 3
+        learning_rate=1e-5,                            # safer LR for DPO
         lr_scheduler_type="cosine",
-        warmup_steps=10,
+        warmup_steps=50,
         optim="adamw_torch",
         gradient_checkpointing=True,
+        fp16=True,                                     # use mixed precision
         max_grad_norm=1.0,
-        logging_steps=5,
-        save_strategy="no",
+        save_strategy="epoch",                         # save after each epoch
+        save_total_limit=2,
+        logging_steps=10,
         report_to=None,
         remove_unused_columns=False,
-        dataloader_num_workers=0,
-        dataloader_pin_memory=False,
-        fp16=False,
-        bf16=False,
+        dataloader_num_workers=2,
+        dataloader_pin_memory=True,
     )
+
 
     # DPO trainer
     trainer = DPOTrainer(
