@@ -27,13 +27,13 @@ fi
 
 # === Configuration ===
 # Option 1: Use local model path (if model is trained locally)
-# YOUR_MODEL="./models/M1_medium"
+YOUR_MODEL="./models/M1_medium_retrain"  # Your retrained DPO model
 
 # Option 2: Use Hugging Face model (if you've pushed it to HF)
-YOUR_MODEL="Jennazhao7/gpt2-medium-dpo-m1"  # Your DPO model (update if different)
+# YOUR_MODEL="Jennazhao7/gpt2-medium-dpo-m1"
 
-BASELINE_MODEL="Setpember/Jon_GPT2M_DPO_props_epi_point5"  # Baseline PROPS DPO model (epsilon=0.5)
-OUTPUT_CSV="eval/props_win_tie_results_gpt2M.csv"
+BASELINE_MODEL="Setpember/Jon_GPT2M_DPSGD_epi_point1"  # Baseline DPSGD model (epsilon=0.1) - uses policy.pt checkpoint
+OUTPUT_CSV="eval/props_win_tie_results_gpt2M_retrain_vs_dpsgd.csv"
 NUM_PROMPTS=100
 BATCH_SIZE=8  # Adjust based on GPU memory (reduce if OOM, increase for speed)
 JUDGE_MODEL="gpt-4o-mini"  # Change to "gpt-4o" for better quality, or "deepseek-chat" if using DeepSeek

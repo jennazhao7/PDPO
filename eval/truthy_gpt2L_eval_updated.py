@@ -1,4 +1,4 @@
-import os, json, argparse
+import os, json, argparse, getpass
 from pathlib import Path
 from typing import List, Dict
 import time
@@ -26,14 +26,35 @@ def generate_batch(model_id: str, prompts: List[str], tokenizer, device: str = "
     print(f"Loading model: {model_id}")
     dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     try:
-        # Load model - works even if model doesn't have tokenizer files
-        # We use a shared tokenizer, so tokenizer files are not required
+        # Use scratch directory for cache if available to avoid disk space issues
+        cache_dir = None
+        for scratch_dir in ['/scratch365', '/scratch']:
+            if os.path.exists(scratch_dir):
+                user_cache_dir = os.path.join(scratch_dir, getpass.getuser(), 'huggingface_cache')
+                try:
+                    os.makedirs(user_cache_dir, exist_ok=True)
+                    # Test write permissions
+                    test_file = os.path.join(user_cache_dir, '.test_write')
+                    try:
+                        with open(test_file, 'w') as f:
+                            f.write('test')
+                        os.remove(test_file)
+                        cache_dir = user_cache_dir
+                        break
+                    except (PermissionError, OSError):
+                        # Can't write here, skip
+                        pass
+                except (PermissionError, OSError):
+                    # Can't create directory, skip
+                    pass
+        
         mdl = AutoModelForCausalLM.from_pretrained(
             model_id, 
             torch_dtype=dtype,
             low_cpu_mem_usage=True,
             device_map=None,  # Explicit device placement
-            trust_remote_code=False
+            trust_remote_code=False,
+            cache_dir=cache_dir
         ).to(device).eval()
         print(f"✅ Model loaded on {device}")
     except Exception as e:
@@ -198,8 +219,8 @@ def main():
     ap = argparse.ArgumentParser(description="Evaluate gpt2-large DPO model against baseline")
     ap.add_argument("--model_a", default="Jennazhao7/gpt2-large-dpo-m1",
                     help="Your DPO model (A)")
-    ap.add_argument("--model_b", default="Setpember/Jon_GPT2L_DPO_props_epi_point1",
-                    help="Baseline PROPS DPO model (B) - epsilon=0.1")
+    ap.add_argument("--model_b", default="Setpember/Jon_GPT2L_DPO_3props_epi_05",
+                    help="Baseline 3PROPS DPO model (B) - epsilon=0.5")
     ap.add_argument("--n", type=int, default=100, help="Number of prompts")
     ap.add_argument("--prompts_txt", type=str, default=None,
                     help="Optional .txt with one prompt per line (overrides dataset loading)")
@@ -219,7 +240,7 @@ def main():
 
     print(f"📝 Loaded {len(prompts)} prompts for evaluation")
     print(f"🔍 Model A (Your M1 DPO): {args.model_a}")
-    print(f"🔍 Model B (Baseline PROPS): {args.model_b}")
+    print(f"🔍 Model B (Baseline 3PROPS): {args.model_b}")
     print(f"   Note: Models without tokenizer files will use the shared GPT-2-large tokenizer")
 
     # 1.5) Load shared GPT-2-large tokenizer for fair comparison
@@ -397,4 +418,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

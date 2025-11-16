@@ -120,6 +120,7 @@ def main():
         trust_remote_code=False,
         device_map=None,
     )
+
     model.config.use_cache = False
     try:
         model.config.attn_implementation = "eager"

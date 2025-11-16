@@ -1,6 +1,6 @@
 import os, json, argparse
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 import time
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -8,6 +8,130 @@ from datasets import load_dataset
 from tqdm import tqdm
 import pandas as pd
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from huggingface_hub import hf_hub_download, list_repo_files
+
+# ---------- model loading helper for policy.pt checkpoints ----------
+def load_model_from_policy_pt(model_id: str, base_model: str = "gpt2-medium", device: str = "cuda"):
+    """
+    Load a model from a Hugging Face repo that only has policy.pt checkpoint.
+    
+    Args:
+        model_id: Hugging Face model identifier (e.g., "Setpember/Jon_GPT2M_DPSGD_epi_point1")
+        base_model: Base model architecture to load (default: "gpt2-medium")
+        device: Device to load model on
+    
+    Returns:
+        Loaded model ready for inference
+    """
+    print(f"📥 Detected policy.pt checkpoint format for {model_id}")
+    print(f"   Loading base model architecture: {base_model}")
+    
+    # Load base model architecture
+    dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+    model = AutoModelForCausalLM.from_pretrained(
+        base_model,
+        torch_dtype=dtype,
+        low_cpu_mem_usage=True,
+        device_map=None
+    )
+    
+    # Download policy.pt from Hugging Face
+    print(f"   Downloading policy.pt from {model_id}...")
+    try:
+        policy_path = hf_hub_download(
+            repo_id=model_id,
+            filename="policy.pt",
+            cache_dir=None  # Use default cache
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to download policy.pt from {model_id}: {e}")
+    
+    # Load checkpoint
+    print(f"   Loading checkpoint from {policy_path}...")
+    checkpoint = torch.load(policy_path, map_location="cpu")
+    
+    # Extract state_dict (checkpoint format from PROPS training)
+    if isinstance(checkpoint, dict):
+        if "state" in checkpoint:
+            state_dict = checkpoint["state"]
+        elif "state_dict" in checkpoint:
+            state_dict = checkpoint["state_dict"]
+        else:
+            # Assume the checkpoint itself is the state_dict
+            state_dict = checkpoint
+    else:
+        state_dict = checkpoint
+    
+    # Handle FSDP wrapping prefixes if present
+    # Remove "_fsdp_wrapped_module." prefix if it exists
+    cleaned_state_dict = {}
+    for key, value in state_dict.items():
+        new_key = key.replace("_fsdp_wrapped_module.", "")
+        cleaned_state_dict[new_key] = value
+    
+    # Load state_dict into model
+    print(f"   Loading state_dict into model...")
+    missing_keys, unexpected_keys = model.load_state_dict(cleaned_state_dict, strict=False)
+    
+    if missing_keys:
+        print(f"   ⚠️  Missing keys: {len(missing_keys)} (this may be normal)")
+    if unexpected_keys:
+        print(f"   ⚠️  Unexpected keys: {len(unexpected_keys)} (this may be normal)")
+    
+    model = model.to(device).eval()
+    print(f"✅ Model loaded successfully on {device}")
+    return model
+
+def load_model_smart(model_id: str, base_model: str = "gpt2-medium", device: str = "cuda"):
+    """
+    Intelligently load a model, handling both standard HF models and policy.pt checkpoints.
+    
+    Args:
+        model_id: Model identifier (HF repo or local path)
+        base_model: Base model architecture (for policy.pt checkpoints)
+        device: Device to load on
+    
+    Returns:
+        Loaded model ready for inference
+    """
+    # Check if this is a Hugging Face repo with only policy.pt
+    if "/" in model_id and not os.path.exists(model_id):
+        # Likely a Hugging Face repo
+        try:
+            repo_files = list_repo_files(repo_id=model_id, repo_type="model")
+            has_policy_pt = "policy.pt" in repo_files
+            has_standard_files = any(
+                f.endswith((".safetensors", ".bin", "config.json", "model.safetensors.index.json"))
+                for f in repo_files
+            )
+            
+            if has_policy_pt and not has_standard_files:
+                # This is a policy.pt checkpoint repo
+                return load_model_from_policy_pt(model_id, base_model, device)
+        except Exception as e:
+            # If we can't list files, try standard loading first
+            print(f"   Could not check repo files: {e}, trying standard loading...")
+    
+    # Standard Hugging Face model loading
+    print(f"Loading model: {model_id}")
+    dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            torch_dtype=dtype,
+            low_cpu_mem_usage=True,
+            device_map=None
+        ).to(device).eval()
+        print(f"✅ Model loaded on {device}")
+        return model
+    except Exception as e:
+        # If standard loading fails and it looks like a HF repo, try policy.pt loading
+        if "/" in model_id and not os.path.exists(model_id):
+            print(f"   Standard loading failed: {e}")
+            print(f"   Attempting policy.pt checkpoint loading...")
+            return load_model_from_policy_pt(model_id, base_model, device)
+        else:
+            raise
 
 # ---------- generation (deterministic, batched) ----------
 @torch.no_grad()
@@ -23,15 +147,7 @@ def generate_batch(model_id: str, prompts: List[str], tokenizer, device: str = "
         max_new_tokens: Maximum number of tokens to generate
         batch_size: Number of prompts to process in parallel (reduce if OOM)
     """
-    print(f"Loading model: {model_id}")
-    dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-    mdl = AutoModelForCausalLM.from_pretrained(
-        model_id, 
-        torch_dtype=dtype,
-        low_cpu_mem_usage=True,
-        device_map=None  # Explicit device placement
-    ).to(device).eval()
-    print(f"✅ Model loaded on {device}")
+    mdl = load_model_smart(model_id, base_model="gpt2-medium", device=device)
 
     outs = []
     # Process in batches for efficiency

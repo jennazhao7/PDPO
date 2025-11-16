@@ -1,0 +1,82 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "truthy-dpo-v0.1",
+  "dataset_size": 1344072,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/jondurbin/truthy-dpo-v0.1@46b2b8ca5fe89ef9776bbb2673c934f101f801b8/truthy-dpo.parquet": {
+      "num_bytes": 652981,
+      "checksum": null
+    }
+  },
+  "download_size": 652981,
+  "features": {
+    "id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "source": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "system": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "chosen": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "rejected": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "pos": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "neg": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "margin_raw": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "margin_abs": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "margin_clipped": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "margin_normalized": {
+      "dtype": "float64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 1997053,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 1344072,
+      "num_examples": 1016,
+      "dataset_name": "truthy-dpo-v0.1"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

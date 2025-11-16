@@ -1,0 +1,9 @@
+Metric,Count,Percentage
+Total Prompts,100,100.0%
+Your Model Wins (A),46,46.0%
+Baseline Wins (B),44,44.0%
+Ties,10,10.0%
+Win Rate (excluding ties),0.511,51.1%
+Win Rate (including ties),0.460,46.0%
+Tie Rate,0.100,10.0%
+Loss Rate,0.440,44.0%

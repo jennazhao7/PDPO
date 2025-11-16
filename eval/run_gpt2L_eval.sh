@@ -32,8 +32,8 @@ fi
 # Option 2: Use Hugging Face model (if you've pushed it to HF)
 YOUR_MODEL="Jennazhao7/gpt2-large-dpo-m1"  # Your DPO model (update if different)
 
-BASELINE_MODEL="Setpember/Jon_GPT2L_DPO_props_epi_point1"  # Baseline PROPS DPO model (epsilon=0.1)
-OUTPUT_CSV="eval/props_win_tie_results_gpt2L.csv"
+BASELINE_MODEL="Setpember/Jon_GPT2L_DPO_3props_epi_05"  # Baseline 3PROPS DPO model (epsilon=0.5)
+OUTPUT_CSV="eval/gpt2L-dpo-m1_vs_3props-ep05.csv"
 NUM_PROMPTS=100
 BATCH_SIZE=4  # Smaller batch size for large model (reduce if OOM, increase for speed if you have memory)
 JUDGE_MODEL="gpt-4o-mini"  # Change to "gpt-4o" for better quality, or "deepseek-chat" if using DeepSeek
@@ -58,5 +58,5 @@ python eval/truthy_gpt2L_eval_updated.py \
 echo ""
 echo "✅ Evaluation complete!"
 echo "📊 Results saved to: $OUTPUT_CSV"
-echo "📈 Summary saved to: ${OUTPUT_CSV%.csv}_summary.csv"
+echo "📈 Summary saved to: eval/summary_results/gpt2L-dpo-m1_vs_3props-ep05_summary.csv"
 
