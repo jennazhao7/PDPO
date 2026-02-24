@@ -1,0 +1,6 @@
+{
+  "model_a": "pythia1b_rr_mle_fix_seed44",
+  "model_b": "pythia1b_rr_sb_seed42",
+  "n_prompts": 40,
+  "seed": 42
+}

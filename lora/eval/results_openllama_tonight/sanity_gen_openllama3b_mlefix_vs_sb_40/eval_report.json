@@ -1,0 +1,6 @@
+{
+  "model_a": "openllama3b_rr_mle_fix",
+  "model_b": "openllama3b_rr_sb",
+  "n_prompts": 40,
+  "seed": 42
+}

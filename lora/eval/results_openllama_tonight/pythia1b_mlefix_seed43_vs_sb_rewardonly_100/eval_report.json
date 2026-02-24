@@ -1,0 +1,26 @@
+{
+  "model_a": "pythia1b_rr_mle_fix_seed43",
+  "model_b": "pythia1b_rr_sb_seed42",
+  "n_prompts": 100,
+  "seed": 42,
+  "reward_bench": {
+    "OpenAssistant/reward-model-deberta-v3-large-v2": {
+      "reward_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+      "n_prompts": 100,
+      "model_a": "pythia1b_rr_mle_fix_seed43",
+      "model_b": "pythia1b_rr_sb_seed42",
+      "score_a_mean": -3.590217,
+      "score_a_median": -3.913483,
+      "score_a_std": 2.467584,
+      "score_b_mean": -3.568206,
+      "score_b_median": -3.768838,
+      "score_b_std": 1.12368,
+      "reward_wins_a": 46,
+      "reward_wins_b": 54,
+      "reward_ties": 0,
+      "reward_win_rate_a": 0.46,
+      "reward_win_rate_b": 0.54,
+      "reward_tie_rate": 0.0
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "reward_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+  "n_prompts": 100,
+  "model_a": "pythia2p8b_rr_sb_seed43",
+  "model_b": "pythia2p8b_rr_mle_seed43",
+  "score_a_mean": -4.845419,
+  "score_a_median": -4.860491,
+  "score_a_std": 0.535534,
+  "score_b_mean": -3.78801,
+  "score_b_median": -3.923954,
+  "score_b_std": 1.661666,
+  "reward_wins_a": 23,
+  "reward_wins_b": 77,
+  "reward_ties": 0,
+  "reward_win_rate_a": 0.23,
+  "reward_win_rate_b": 0.77,
+  "reward_tie_rate": 0.0
+}

@@ -1,0 +1,36 @@
+{
+    "model_id": "gpt2-medium",
+    "dataset_path": "lora/preprocessing/d1_rr_flipped.jsonl",
+    "output_dir": "outputs/plain_lora_gpt2m_dpo",
+    "seed": 42,
+    "val_fraction": 0.1,
+
+    "num_train_epochs": 3,
+    "max_steps": -1,
+    "learning_rate": 5e-5,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 16,
+    "max_grad_norm": 1.0,
+    "max_seq_length": 512,
+
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": "c_attn,c_proj,c_fc",
+
+    "dpo_beta": 0.1,
+    "dpo_loss_type": "sigmoid",
+
+    "fp16": true,
+    "bf16": false,
+    "gradient_checkpointing": true,
+
+    "logging_steps": 10,
+    "eval_every_steps": 0,
+    "save_every_steps": 0,
+
+    "max_eval_samples": 200,
+    "gen_max_new_tokens": 128
+}

@@ -2,3 +2,17 @@ models
 logs
 PROPS-2025
 
+# Outputs (LoRAs, logs — not GitHub-friendly)
+outputs_openllama_tonight/
+outputs/
+outputs_eps05/
+
+# Large data (regeneratable via 01_secure_pku_saferlhf.py)
+data/pku_saferlhf_secure/raw_hf_dataset/
+
+# Build/cache
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log
+

@@ -1,0 +1,9 @@
+torch>=2.0
+transformers>=4.40
+datasets>=2.18
+peft>=0.10
+accelerate>=0.28
+numpy
+scipy  # for minimal RDP fallback when Opacus incompatible (e.g. PyTorch < 2.1)
+opacus>=1.4  # optional: used when compatible; fallback to minimal RDP if import fails
+bitsandbytes>=0.43  # optional, for --load_in_4bit / --load_in_8bit

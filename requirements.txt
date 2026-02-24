@@ -8,3 +8,4 @@ sentencepiece==0.2.0
 protobuf==5.28.2
 tqdm
 evaluate
+peft>=0.10

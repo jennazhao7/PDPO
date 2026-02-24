@@ -1,0 +1,49 @@
+{
+  "model_a": "rr+MLE",
+  "model_b": "plain-LoRA",
+  "n_prompts": 20,
+  "seed": 42,
+  "gpt4_judge": {
+    "judge_model": "gpt-5-mini",
+    "n_prompts": 20,
+    "n_votes": 1,
+    "model_a": "rr+MLE",
+    "model_b": "plain-LoRA",
+    "wins_a": 5,
+    "wins_b": 13,
+    "ties": 2,
+    "win_rate_a": 0.25,
+    "win_rate_b": 0.65,
+    "tie_rate": 0.1,
+    "win_rate_a_excl_ties": 0.2778,
+    "rubric_n": 20,
+    "rubric_a_accuracy_mean": 1.25,
+    "rubric_a_helpfulness_mean": 1.25,
+    "rubric_a_hallucination_mean": 4.65,
+    "rubric_b_accuracy_mean": 1.2,
+    "rubric_b_helpfulness_mean": 1.05,
+    "rubric_b_hallucination_mean": 2.15,
+    "rubric_a_composite_mean": -2.15,
+    "rubric_b_composite_mean": 0.1
+  },
+  "reward_bench": {
+    "OpenAssistant/reward-model-deberta-v3-large-v2": {
+      "reward_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+      "n_prompts": 20,
+      "model_a": "rr+MLE",
+      "model_b": "plain-LoRA",
+      "score_a_mean": -3.372571,
+      "score_a_median": -3.32411,
+      "score_a_std": 1.046151,
+      "score_b_mean": -4.206862,
+      "score_b_median": -4.355197,
+      "score_b_std": 0.781978,
+      "reward_wins_a": 17,
+      "reward_wins_b": 3,
+      "reward_ties": 0,
+      "reward_win_rate_a": 0.85,
+      "reward_win_rate_b": 0.15,
+      "reward_tie_rate": 0.0
+    }
+  }
+}

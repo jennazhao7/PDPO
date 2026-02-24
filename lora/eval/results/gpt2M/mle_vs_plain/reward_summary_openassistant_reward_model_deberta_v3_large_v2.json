@@ -1,0 +1,18 @@
+{
+  "reward_model": "OpenAssistant/reward-model-deberta-v3-large-v2",
+  "n_prompts": 20,
+  "model_a": "rr+MLE",
+  "model_b": "plain-LoRA",
+  "score_a_mean": -3.120324,
+  "score_a_median": -3.449211,
+  "score_a_std": 1.049015,
+  "score_b_mean": -4.206862,
+  "score_b_median": -4.355197,
+  "score_b_std": 0.781978,
+  "reward_wins_a": 19,
+  "reward_wins_b": 1,
+  "reward_ties": 0,
+  "reward_win_rate_a": 0.95,
+  "reward_win_rate_b": 0.05,
+  "reward_tie_rate": 0.0
+}

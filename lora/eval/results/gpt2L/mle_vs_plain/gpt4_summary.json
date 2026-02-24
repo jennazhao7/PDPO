@@ -1,0 +1,23 @@
+{
+  "judge_model": "gpt-5-mini",
+  "n_prompts": 20,
+  "n_votes": 1,
+  "model_a": "rr+MLE",
+  "model_b": "plain-LoRA",
+  "wins_a": 11,
+  "wins_b": 6,
+  "ties": 3,
+  "win_rate_a": 0.55,
+  "win_rate_b": 0.3,
+  "tie_rate": 0.15,
+  "win_rate_a_excl_ties": 0.6471,
+  "rubric_n": 20,
+  "rubric_a_accuracy_mean": 1.6,
+  "rubric_a_helpfulness_mean": 1.5,
+  "rubric_a_hallucination_mean": 3.85,
+  "rubric_b_accuracy_mean": 1.1,
+  "rubric_b_helpfulness_mean": 1.05,
+  "rubric_b_hallucination_mean": 3.45,
+  "rubric_a_composite_mean": -0.75,
+  "rubric_b_composite_mean": -1.3
+}
