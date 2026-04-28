@@ -34,13 +34,13 @@ fi
 
 if [[ "$MODEL" == EleutherAI/pythia-* ]]; then
   TARGET_MODS="query_key_value,dense_h_to_4h,dense_4h_to_h"
-  GA=16
-  MAX_LEN=512
+  GA=16; MAX_LEN=512; LORA_R=16
+elif [[ "$MODEL" == mistralai/* ]]; then
+  TARGET_MODS="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+  GA=8; MAX_LEN=192; LORA_R=8
 else
   TARGET_MODS="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
-  GA=32
-  # Lower default keeps OpenLLaMA SB stable on RTX 6000.
-  MAX_LEN="${MAX_LEN:-320}"
+  GA=32; MAX_LEN="${MAX_LEN:-320}"; LORA_R=16
 fi
 
 python lora/train_stage2_soft_bayes.py \
@@ -61,4 +61,5 @@ python lora/train_stage2_soft_bayes.py \
   --lora_r 16 \
   --lora_alpha 32 \
   --lora_dropout 0.05 \
-  --seed "$SEED"
+  --seed "$SEED" \
+  $( [[ "$MODEL" == mistralai/* ]] && echo "--bf16" )

@@ -112,6 +112,25 @@ def parse_args():
     ap.add_argument("--ga", type=int, default=16)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--max-steps", type=int, default=600)
+    ap.add_argument(
+        "--save-strategy",
+        type=str,
+        default="steps",
+        choices=["no", "steps", "epoch"],
+        help="Checkpoint save strategy for crash recovery.",
+    )
+    ap.add_argument(
+        "--save-steps",
+        type=int,
+        default=50,
+        help="Save checkpoint every N steps when --save-strategy=steps.",
+    )
+    ap.add_argument(
+        "--save-total-limit",
+        type=int,
+        default=2,
+        help="Keep at most this many checkpoints.",
+    )
     ap.add_argument("--warmup-ratio", type=float, default=0.03)
     ap.add_argument("--max-prompt", type=int, default=256)
     ap.add_argument("--max-target", type=int, default=256)
@@ -219,7 +238,9 @@ def main() -> int:
         gradient_checkpointing=True,
         fp16=bool(cuda_ok),
         max_grad_norm=1.0,
-        save_strategy="no",
+        save_strategy=args.save_strategy,
+        save_steps=args.save_steps,
+        save_total_limit=args.save_total_limit,
         logging_steps=10,
         report_to=None,
         remove_unused_columns=False,

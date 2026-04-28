@@ -16,3 +16,17 @@ __pycache__/
 .pytest_cache/
 *.log
 
+.deps/
+.agent/
+.cursor/
+.hf_cache/
+*.o*
+nohup.out
+outputs_new_models/
+outputs_quick_test/
+.agent/
+.cursor/
+.hf_cache/
+*.o*
+nohup.out
+.deps/

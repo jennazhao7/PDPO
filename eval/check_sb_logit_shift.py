@@ -34,8 +34,12 @@ def load_stage2(manifest_path, device):
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.float16)
-    model = PeftModel.from_pretrained(model, s1)
-    model = PeftModel.from_pretrained(model, s2)
+    model = PeftModel.from_pretrained(model, s1, adapter_name="stage1")
+    model.load_adapter(s2, adapter_name="stage2")
+    try:
+        model.set_adapter(["stage1", "stage2"])
+    except Exception:
+        model.set_adapter("stage2")
     return model.to(device).eval(), tok
 
 @torch.no_grad()

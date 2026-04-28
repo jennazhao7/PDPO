@@ -37,7 +37,7 @@ EOF
 torchrun \
   --standalone \
   --nnodes=1 \
-  --nproc_per_node=$NUM_GPUS \
+  --nproc_per_node=4 \
   train_dpo_stage1.py \
   --model EleutherAI/pythia-1b \
   --data ./preprocessing/truthydpo/dpo_train_ready.jsonl \

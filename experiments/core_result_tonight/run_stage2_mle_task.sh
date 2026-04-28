@@ -34,15 +34,17 @@ fi
 
 if [[ "$MODEL" == EleutherAI/pythia-* ]]; then
   TARGET_MODS="query_key_value,dense_h_to_4h,dense_4h_to_h"
-  GA=16
-  MAX_LEN=512
+  GA=16; MAX_LEN=512; LORA_R=16
+elif [[ "$MODEL" == mistralai/* ]]; then
+  TARGET_MODS="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+  # 14.5GB base + activations barely fits at 24GB; use smaller LoRA and shorter seqs
+  GA=8; MAX_LEN=192; LORA_R=8
 else
   TARGET_MODS="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
-  GA=32
-  MAX_LEN="${MAX_LEN:-384}"
+  GA=32; MAX_LEN="${MAX_LEN:-384}"; LORA_R=16
 fi
 
-python lora/train_stage2_lora.py \
+python lora/train_stage2_dpo.py \
   --model "$MODEL" \
   --stage1_adapter "$STAGE1_DIR" \
   --data "$D2_OUT" \
@@ -50,6 +52,9 @@ python lora/train_stage2_lora.py \
   --manifest_out "$MANIFEST" \
   --target_modules "$TARGET_MODS" \
   --max_len "$MAX_LEN" \
+  --max_prompt_length 256 \
+  --max_target_length 256 \
+  --beta 0.1 \
   --bsz 1 \
   --ga "$GA" \
   --lr 1e-5 \
@@ -57,8 +62,8 @@ python lora/train_stage2_lora.py \
   --epochs 1.0 \
   --max_grad_norm 1.0 \
   --warmup_ratio 0.03 \
-  --lora_r 16 \
+  --lora_r "${LORA_R:-16}" \
   --lora_alpha 32 \
   --lora_dropout 0.05 \
   --seed "$SEED" \
-  --no_smoke_test
+  $( [[ "$MODEL" == mistralai/* ]] && echo "--bf16" )

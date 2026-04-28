@@ -20,7 +20,12 @@ ds = ds.map(canon)
 
 # 2) Load frozen RM
 tok = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True)
-rm  = AutoModelForSequenceClassification.from_pretrained(MODEL_ID, torch_dtype=DTYPE).to(DEVICE)
+rm  = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_ID,
+    torch_dtype=DTYPE,
+    use_safetensors=True,           # avoid torch.load vulnerability restriction
+    trust_remote_code=False,
+).to(DEVICE)
 rm.eval()
 for p in rm.parameters(): p.requires_grad_(False)
 
