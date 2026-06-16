@@ -6,7 +6,10 @@
 # === Setup environment ===
 source ~/.bashrc
 conda activate pdpo
-cd /users/jzhao7/PDPO
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/pdpo_env.sh
+source "${SCRIPT_DIR}/scripts/pdpo_env.sh"
+cd "${PDPO_ROOT}"
 
 # === Run fine-tuning ===
 # Single GPU settings - try PROPS-2025 defaults first, fall back to memory-optimized if OOM

@@ -6,7 +6,10 @@
 # === Setup environment ===
 source ~/.bashrc
 conda activate pdpo
-cd /users/jzhao7/PDPO
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/pdpo_env.sh
+source "${SCRIPT_DIR}/scripts/pdpo_env.sh"
+cd "${PDPO_ROOT}"
 
 # === Check if D1 dataset exists ===
 D1_DATA="./preprocessing/truthydpo/dpo_train_ready_d1.jsonl"

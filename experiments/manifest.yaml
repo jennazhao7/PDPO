@@ -1,0 +1,31 @@
+defaults:
+  base_model: Qwen/Qwen2.5-3B
+  lora_rank: 16
+  seeds: [42, 43]
+  mia: true
+
+queue:
+  - id: e1_rdpo
+    method: rdpo
+    datasets: [pku, hhrlhf, truthy]
+    eps: [0.5, 1.0, 2.0]
+    known_rate: true
+
+  - id: e1_redpo
+    method: redpo
+    datasets: [pku, hhrlhf, truthy]
+    eps: [0.5, 1.0, 2.0]
+    estimate_eta: true
+    log_eta_vs_true: true
+
+  - id: e2_random
+    method: random_subset
+    datasets: [pku, truthy, hhrlhf]
+    eps: [1.0, 2.0]
+    keep_fraction: 0.5
+
+  - id: e2_limo_matched
+    method: limo
+    datasets: [pku, truthy, hhrlhf]
+    eps: [1.0, 2.0]
+    keep_fraction: 0.5

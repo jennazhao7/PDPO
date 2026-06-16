@@ -6,7 +6,10 @@
 # === Setup environment ===
 source ~/.bashrc
 conda activate pdpo
-cd /users/jzhao7/PDPO
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/pdpo_env.sh
+source "${SCRIPT_DIR}/scripts/pdpo_env.sh"
+cd "${PDPO_ROOT}"
 
 # === Configuration ===
 D2_PROPS_DATA="./preprocessing/truthydpo/d2_props_labels.jsonl"

@@ -30,3 +30,4 @@ outputs_quick_test/
 *.o*
 nohup.out
 .deps/
+scripts/gcp/gcp.env
