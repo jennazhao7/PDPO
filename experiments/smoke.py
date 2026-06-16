@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import torch
-assert torch.cuda.is_available(), "Refusing to run on CPU"
-
 import argparse
 import hashlib
 import itertools
