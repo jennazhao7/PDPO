@@ -31,3 +31,12 @@ outputs_quick_test/
 nohup.out
 .deps/
 scripts/gcp/gcp.env
+
+# Reproducible experiment data and local smoke outputs (stored in GCS).
+data/truthydpo_secure/
+data/hhrlhf_secure/
+data/pku_saferlhf_secure/
+stage2_debugging/preprocessing/
+stage2_debugging/testsets/
+stage2_debugging/test_pref.jsonl
+experiments/smoke_results/

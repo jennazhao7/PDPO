@@ -35,14 +35,25 @@ def format_template(template: str, cell: Dict[str, Any]) -> str:
     return template.format(**values)
 
 
-def unique_dataset_model_jobs(manifest: Dict[str, Any], train_template: str) -> List[Tuple[str, str, Path]]:
-    jobs: Dict[Tuple[str, str, str], Tuple[str, str, Path]] = {}
+def canonical_clean_path(dataset: str) -> Path:
+    return {
+        "truthy": Path("data/truthydpo_secure/train_pref.jsonl"),
+        "hhrlhf": Path("data/hhrlhf_secure/train_pref.jsonl"),
+        "pku": Path("data/pku_saferlhf_secure/train_pref.jsonl"),
+    }[dataset]
+
+
+def unique_dataset_model_jobs(manifest: Dict[str, Any], clean_template: str) -> List[Tuple[str, str, Path]]:
+    jobs: Dict[Tuple[str, str], Tuple[str, str, Path]] = {}
     for cell in aggregate.expand_manifest(manifest):
         dataset = str(cell["dataset"])
         base_model = str(cell["base_model"])
-        train_path = Path(format_template(train_template, cell))
-        key = (dataset, base_model, str(train_path))
-        jobs[key] = (dataset, base_model, train_path)
+        train_path = (
+            canonical_clean_path(dataset)
+            if clean_template == "auto"
+            else Path(format_template(clean_template, cell))
+        )
+        jobs[(dataset, base_model)] = (dataset, base_model, train_path)
     return sorted(jobs.values(), key=lambda item: item[0])
 
 
@@ -125,7 +136,11 @@ def parse_args() -> argparse.Namespace:
     root = aggregate.repo_root()
     ap = argparse.ArgumentParser(description="Precompute base/reference logprobs once and upload to GCS.")
     ap.add_argument("--manifest", default=str(root / "experiments/manifest.yaml"))
-    ap.add_argument("--train-template", default="stage2_debugging/preprocessing/d2_rr_flipped_{dataset}_eps{eps}_seed{seed}.jsonl")
+    ap.add_argument(
+        "--clean-template",
+        default="auto",
+        help="Canonical clean pairs; computed once per dataset/base model before RR label swaps.",
+    )
     ap.add_argument("--out-dir", default=str(root / "experiments/ref_logps"))
     ap.add_argument("--bucket", default=config.BUCKET)
     ap.add_argument("--max-len", type=int, default=512)
@@ -139,7 +154,7 @@ def main() -> int:
     config.validate_runtime_config(require_bucket=True)
     manifest = aggregate.load_manifest(Path(args.manifest))
     uploaded = []
-    for dataset, base_model, train_path in unique_dataset_model_jobs(manifest, args.train_template):
+    for dataset, base_model, train_path in unique_dataset_model_jobs(manifest, args.clean_template):
         if not train_path.exists():
             print(f"[missing] {train_path}; skipping cache for {dataset}/{base_model}")
             continue

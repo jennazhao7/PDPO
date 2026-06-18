@@ -428,8 +428,16 @@ def build_paths(args: argparse.Namespace, cell: Dict[str, Any], result_root: Pat
     }
     paths["train_jsonl"] = format_template(args.train_template, cell, paths)
     paths["test_jsonl"] = resolve_test_template(args.test_template, cell, paths)
-    paths["member_jsonl"] = format_template(args.member_template, cell, paths)
-    paths["nonmember_jsonl"] = format_template(args.nonmember_template, cell, paths)
+    paths["member_jsonl"] = (
+        paths["train_jsonl"]
+        if args.member_template == "auto"
+        else format_template(args.member_template, cell, paths)
+    )
+    paths["nonmember_jsonl"] = (
+        paths["test_jsonl"]
+        if args.nonmember_template == "auto"
+        else format_template(args.nonmember_template, cell, paths)
+    )
     paths["stage1_adapter"] = format_template(args.stage1_template, cell, paths)
     cache = ref_cache_path(args, cell)
     if cache.exists():
@@ -726,11 +734,11 @@ def parse_args() -> argparse.Namespace:
     )
     ap.add_argument(
         "--member-template",
-        default="stage2_debugging/mia_full/{dataset}/eps{eps}_seed{seed}/members.jsonl",
+        default="auto",
     )
     ap.add_argument(
         "--nonmember-template",
-        default="stage2_debugging/mia_full/{dataset}/eps{eps}_seed{seed}/nonmembers.jsonl",
+        default="auto",
     )
     args = ap.parse_args()
     args.method_command = parse_method_commands(args.method_command)

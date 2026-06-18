@@ -110,7 +110,12 @@ python3 -m pip install -r requirements.txt || true
 
 log "Pulling cached data/results from ${BUCKET_URI}"
 gcloud storage cp -r "${BUCKET_URI}/experiments/run_queue" experiments/ || true
-gcloud storage cp -r "${BUCKET_URI}/experiments/ref_logps" experiments/ || true
+gcloud storage cp -r "${BUCKET_URI}/ref_logps" experiments/ || true
+gcloud storage cp -r "${BUCKET_URI}/data" . || true
+mkdir -p stage2_debugging
+gcloud storage cp -r "${BUCKET_URI}/stage2_debugging/preprocessing" stage2_debugging/ || true
+gcloud storage cp -r "${BUCKET_URI}/stage2_debugging/testsets" stage2_debugging/ || true
+gcloud storage cp "${BUCKET_URI}/stage2_debugging/test_pref.jsonl" stage2_debugging/test_pref.jsonl || true
 gcloud storage cp "${BUCKET_URI}/cost_ledger.csv" cost_ledger.csv || true
 
 log "Starting idle watchdog"
