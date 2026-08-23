@@ -40,3 +40,61 @@ stage2_debugging/preprocessing/
 stage2_debugging/testsets/
 stage2_debugging/test_pref.jsonl
 experiments/smoke_results/
+
+# ---------------------------------------------------------------------------
+# Stage 2 RR sweep and E9 (2026-08-23). Everything here is either large,
+# regenerable, or lives authoritatively in GCS.
+# ---------------------------------------------------------------------------
+
+# Virtualenvs
+.venv-pdpo/
+analysis_cpu/venv/
+
+# Experiment outputs: LoRA adapters (~119 MB each), per-token artifacts (~32 MB
+# each), eval JSON, ledgers, health files. Authoritative copies are in
+# gs://jenna-pdpo-pdpo/experiments/. The PRE-REGISTRATION is the scientific
+# record and is deliberately exempted.
+experiments/stage2_rr/*
+!experiments/stage2_rr/PREREGISTRATION.md
+experiments/stage1_operating_point/
+experiments/e9_utility/
+experiments/ref_logps_stage2/
+experiments/ref_logps_v3/
+experiments/alt_eval_suite_full/
+experiments/alt_eval_repro_v2/
+experiments/alternative_eval_suite/
+experiments/stratified_leakage_v2/
+experiments/stratified_leakage_v2.partial.snapshot.jsonl
+experiments/token_concentration/
+experiments/v1_adapter_verification_corrected/
+experiments/v1_supervisor/
+experiments/eps05/
+experiments/frontiers/
+experiments/full_run_fp32/
+experiments/margin_control_probe2/
+experiments/margin_control_probe3/
+experiments/penalized_margin_frontier/
+experiments/core_result_tonight/
+experiments/v2_data_rebuild/
+experiments/v3_data_rebuild/
+experiments/smoke_results/
+
+# CPU analysis workspaces: derived outputs plus read-only copies pulled from
+# GCS. Reproducible from the scripts, which ARE committed.
+analysis/
+analysis_cpu/
+
+# Datasets. Deterministically regenerable (prepare_stage2_rr.py,
+# prepare_manifest_data*.py) and mirrored in GCS.
+data/
+
+# Source bundles built for VM launches
+*.tar.gz
+
+# Credentials and local machine state -- never commit
+*.env
+!scripts/gcp/gcp.env.example
+.config/gcloud/
+application_default_credentials.json
+*.pem
+*.p12
